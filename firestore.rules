@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Rules for notes collection
+    match /notes/{noteId} {
+      // Users can only read their own notes
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Users can only create notes with their own userId
+      allow create: if request.auth != null 
+                    && request.auth.uid == request.resource.data.userId
+                    && request.resource.data.keys().hasAll(['title', 'content', 'userId', 'createdAt', 'updatedAt']);
+      
+      // Users can only update their own notes
+      allow update: if request.auth != null 
+                    && request.auth.uid == resource.data.userId
+                    && request.resource.data.userId == resource.data.userId;
+      
+      // Users can only delete their own notes
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+  }
+}
